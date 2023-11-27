@@ -5,6 +5,9 @@ app = Flask(__name__)
 
 API_KEY = '00f883f0c9869108ba2c3c8d6b4b64fd'
 
+def kelvin_to_celsius(kelvin_temperature):
+    return kelvin_temperature - 273.15
+
 @app.route('/weather', methods=['GET'])
 def get_weather():
     city = request.args.get('city')
@@ -12,7 +15,7 @@ def get_weather():
     if not city:
         return jsonify({'error': 'City parameter is required'}), 400
 
-    url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}'
+    url = f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}'
     response = requests.get(url)
 
     if response.status_code != 200:
@@ -20,9 +23,12 @@ def get_weather():
 
     data = response.json()
 
+    temperature_kelvin = data['main']['temp']
+    temperature_celsius = kelvin_to_celsius(temperature_kelvin)
+
     weather_info = {
         'city': data['name'],
-        'temperature': data['main']['temp'],
+        'temperature': temperature_celsius,
         'description': data['weather'][0]['description'],
     }
 
@@ -30,4 +36,3 @@ def get_weather():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
